@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GTA Mod Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0D0D0D;--bg2:#141414;--bg3:#1a1a1a;--bg4:#222;
+  --fg:#F5F5F0;--fg2:#aaa;--fg3:#555;
+  --yellow:#F5E642;--red:#FF3366;--green:#00F5A0;--purple:#8B5CF6;
+  --border:#2a2a2a;--radius:8px;--radius-lg:12px;
+}
+body{background:var(--bg);color:var(--fg);font-family:'Space Grotesk',sans-serif;min-height:100vh}
+a{color:inherit;text-decoration:none}
+button{cursor:pointer;font-family:'Space Grotesk',sans-serif}
+input,select,textarea{font-family:'Space Grotesk',sans-serif;background:var(--bg3);border:1px solid var(--border);color:var(--fg);padding:10px 14px;border-radius:var(--radius);width:100%;font-size:14px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--yellow)}
+select option{background:var(--bg3)}
+label{font-size:13px;color:var(--fg2);display:block;margin-bottom:6px}
+.page{display:none}
+.page.active{display:block}
+
+/* NAV */
+nav{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:100}
+.nav-logo{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--yellow);text-shadow:2px 2px 0 var(--red);letter-spacing:.05em}
+.nav-links{display:flex;gap:8px;align-items:center}
+.btn{padding:8px 18px;border-radius:var(--radius);font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;border:1.5px solid;transition:all .2s}
+.btn-ghost{border-color:var(--border);background:transparent;color:var(--fg2)}
+.btn-ghost:hover{border-color:var(--yellow);color:var(--yellow)}
+.btn-primary{border-color:var(--yellow);background:var(--yellow);color:#000}
+.btn-primary:hover{background:transparent;color:var(--yellow)}
+.btn-danger{border-color:var(--red);background:transparent;color:var(--red)}
+.btn-danger:hover{background:var(--red);color:#fff}
+.btn-green{border-color:var(--green);background:var(--green);color:#000}
+.btn-green:hover{background:transparent;color:var(--green)}
+.btn-sm{padding:5px 12px;font-size:12px}
+
+/* HERO */
+.hero{text-align:center;padding:60px 24px 40px;border-bottom:1px solid var(--border)}
+.hero h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(3rem,10vw,6rem);line-height:.9;margin-bottom:12px}
+.hero h1 span:nth-child(1){color:var(--yellow)}
+.hero h1 span:nth-child(2){color:var(--red)}
+.hero h1 span:nth-child(3){color:var(--green)}
+.hero p{color:var(--fg2);max-width:480px;margin:0 auto;font-size:15px}
+.search-bar{max-width:500px;margin:24px auto 0;position:relative}
+.search-bar input{padding-left:40px;background:var(--bg2);border-color:var(--border)}
+.search-bar i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--fg3)}
+
+/* CATEGORY TABS */
+.cat-tabs{display:flex;gap:8px;padding:20px 24px;overflow-x:auto;border-bottom:1px solid var(--border);scrollbar-width:none}
+.cat-tabs::-webkit-scrollbar{display:none}
+.cat-tab{padding:6px 16px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--fg2);font-size:13px;font-weight:500;white-space:nowrap;transition:all .2s}
+.cat-tab:hover,.cat-tab.active{border-color:var(--yellow);background:var(--yellow);color:#000}
+
+/* MOD GRID */
+.mod-section{padding:24px}
+.section-title{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:.05em;color:var(--fg2);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.mod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px}
+.mod-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;cursor:pointer;transition:border-color .2s,transform .15s}
+.mod-card:hover{border-color:var(--yellow);transform:translateY(-2px)}
+.mod-thumb{width:100%;aspect-ratio:16/9;object-fit:cover;background:var(--bg3);display:flex;align-items:center;justify-content:center;color:var(--fg3);font-size:2rem}
+.mod-thumb img{width:100%;height:100%;object-fit:cover}
+.mod-info{padding:12px}
+.mod-name{font-weight:600;font-size:14px;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mod-meta{display:flex;justify-content:space-between;align-items:center}
+.mod-date{font-size:12px;color:var(--fg3)}
+.mod-cat-badge{font-size:11px;padding:2px 8px;border-radius:4px;background:var(--bg4);color:var(--yellow);border:1px solid var(--border)}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;overflow-y:auto;padding:20px}
+.modal-overlay.open{display:flex;align-items:flex-start;justify-content:center}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);width:100%;max-width:700px;margin:auto}
+.modal-header{padding:20px 24px 0;display:flex;justify-content:space-between;align-items:flex-start}
+.modal-header h2{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:.04em}
+.modal-close{background:none;border:none;color:var(--fg2);font-size:22px;line-height:1;padding:4px}
+.modal-close:hover{color:var(--fg)}
+.modal-img{width:100%;aspect-ratio:16/9;object-fit:cover;background:var(--bg3);margin-top:16px;display:flex;align-items:center;justify-content:center;font-size:3rem;color:var(--fg3)}
+.modal-img img{width:100%;height:100%;object-fit:cover}
+.modal-gallery{display:flex;gap:8px;padding:12px 24px;overflow-x:auto;scrollbar-width:thin}
+.modal-gallery img,.gallery-thumb{width:80px;height:56px;object-fit:cover;border-radius:6px;border:2px solid transparent;cursor:pointer;background:var(--bg3);flex-shrink:0}
+.modal-gallery img.active,.gallery-thumb.active{border-color:var(--yellow)}
+.modal-body{padding:16px 24px 24px}
+.mod-desc{color:var(--fg2);font-size:14px;line-height:1.6;margin-bottom:20px}
+.mod-stats{display:flex;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+.stat-item{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--fg2)}
+.modal-actions{display:flex;gap:10px;flex-wrap:wrap}
+
+/* PASSWORD MODAL */
+.pw-modal{max-width:380px}
+.pw-modal .modal-body{padding:20px 24px}
+
+/* AUTH PAGE */
+.auth-wrap{min-height:calc(100vh - 60px);display:flex;align-items:center;justify-content:center;padding:24px}
+.auth-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:32px;width:100%;max-width:400px}
+.auth-card h2{font-family:'Bebas Neue',sans-serif;font-size:2rem;margin-bottom:8px;color:var(--yellow)}
+.auth-card p{color:var(--fg2);font-size:14px;margin-bottom:24px}
+.form-group{margin-bottom:16px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.error-msg{color:var(--red);font-size:13px;margin-top:6px}
+.success-msg{color:var(--green);font-size:13px;margin-top:6px}
+
+/* UPLOAD PAGE */
+.upload-wrap{max-width:700px;margin:0 auto;padding:32px 24px}
+.upload-wrap h1{font-family:'Bebas Neue',sans-serif;font-size:2rem;margin-bottom:24px}
+.file-drop{border:2px dashed var(--border);border-radius:var(--radius-lg);padding:40px;text-align:center;cursor:pointer;transition:border-color .2s}
+.file-drop:hover{border-color:var(--yellow)}
+.file-drop p{color:var(--fg2);font-size:14px;margin-top:8px}
+.preview-thumb{width:100%;max-height:200px;object-fit:cover;border-radius:var(--radius);margin-top:10px}
+.preview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-top:10px}
+.preview-grid img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:6px;border:1px solid var(--border)}
+
+/* ADMIN PAGE */
+.admin-wrap{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 60px)}
+.admin-sidebar{background:var(--bg2);border-right:1px solid var(--border);padding:24px 0}
+.admin-sidebar h3{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--fg3);padding:0 20px 12px}
+.sidebar-item{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;font-size:14px;color:var(--fg2);transition:all .2s}
+.sidebar-item:hover,.sidebar-item.active{background:var(--bg3);color:var(--yellow)}
+.sidebar-item i{font-size:18px}
+.admin-content{padding:32px}
+.admin-content h2{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;margin-bottom:24px}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:32px}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px}
+.stat-card .num{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--yellow)}
+.stat-card .lbl{font-size:12px;color:var(--fg3);text-transform:uppercase;letter-spacing:.1em}
+.table-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+table{width:100%;border-collapse:collapse}
+th{background:var(--bg3);padding:12px 16px;text-align:left;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--fg3);font-weight:600}
+td{padding:12px 16px;font-size:14px;border-top:1px solid var(--border);vertical-align:middle}
+tr:hover td{background:var(--bg3)}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600}
+.badge-yellow{background:#2a2700;color:var(--yellow);border:1px solid #3d3900}
+.badge-green{background:#003320;color:var(--green);border:1px solid #005530}
+.badge-red{background:#2a0010;color:var(--red);border:1px solid #440020}
+
+/* FILE LIST PAGE */
+.filelist-wrap{max-width:900px;margin:0 auto;padding:32px 24px}
+.filelist-wrap h1{font-family:'Bebas Neue',sans-serif;font-size:2rem;margin-bottom:8px}
+.filelist-wrap p{color:var(--fg2);font-size:14px;margin-bottom:24px}
+.url-row{display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-bottom:8px}
+.url-text{flex:1;font-size:13px;color:var(--fg2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:monospace}
+.copy-btn{flex-shrink:0}
+.copied{color:var(--green)!important;border-color:var(--green)!important}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 20px;font-size:14px;z-index:999;transform:translateY(100px);opacity:0;transition:all .3s}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.success{border-color:var(--green);color:var(--green)}
+.toast.error{border-color:var(--red);color:var(--red)}
+
+/* EMPTY STATE */
+.empty{text-align:center;padding:60px 24px;color:var(--fg3)}
+.empty i{font-size:3rem;margin-bottom:12px}
+
+@media(max-width:640px){
+  .admin-wrap{grid-template-columns:1fr}
+  .admin-sidebar{display:flex;overflow-x:auto;padding:8px;border-right:none;border-bottom:1px solid var(--border)}
+  .admin-sidebar h3{display:none}
+  .sidebar-item{flex-shrink:0;padding:8px 14px}
+  nav{padding:0 12px}
+  .nav-logo{font-size:1.3rem}
+  .hero{padding:40px 16px 24px}
+  .mod-section{padding:16px}
+}
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="main-nav">
+  <div class="nav-logo" onclick="goPage('home')" style="cursor:pointer">GTA MOD HUB</div>
+  <div class="nav-links" id="nav-links">
+    <button class="btn btn-ghost btn-sm" onclick="goPage('home')"><i class="ti ti-home"></i></button>
+    <button class="btn btn-ghost btn-sm" id="nav-filelist" onclick="goPage('filelist')" style="display:none">Daftar URL</button>
+    <button class="btn btn-ghost btn-sm" id="nav-admin" onclick="goPage('admin')" style="display:none">Admin</button>
+    <button class="btn btn-ghost btn-sm" id="nav-login" onclick="goPage('login')">Login</button>
+    <button class="btn btn-danger btn-sm" id="nav-logout" onclick="doLogout()" style="display:none">Logout</button>
+  </div>
+</nav>
+
+<!-- ========== HOME PAGE ========== -->
+<div id="page-home" class="page active">
+  <div class="hero">
+    <h1><span>GTA</span> <span>MOD</span><br><span>HUB</span></h1>
+    <p>Koleksi mod GTA terbaik — vehicles, maps, scripts, dan lebih banyak lagi.</p>
+    <div class="search-bar">
+      <i class="ti ti-search"></i>
+      <input type="text" id="search-input" placeholder="Cari mod..." oninput="renderMods()">
+    </div>
+  </div>
+  <div class="cat-tabs" id="cat-tabs">
+    <button class="cat-tab active" data-cat="all" onclick="selectCat(this)">Semua</button>
+  </div>
+  <div class="mod-section" id="mod-section"></div>
+</div>
+
+<!-- ========== LOGIN PAGE ========== -->
+<div id="page-login" class="page">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <h2>Login</h2>
+      <p>Masuk dengan email terdaftar</p>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="login-email" placeholder="email@kamu.com">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="login-password" placeholder="Password">
+      </div>
+      <div class="error-msg" id="login-error" style="margin-bottom:12px;display:none"></div>
+      <button class="btn btn-primary" style="width:100%" onclick="doLogin()">Masuk</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== UPLOAD PAGE ========== -->
+<div id="page-upload" class="page">
+  <div class="upload-wrap">
+    <h1>Upload Mod Baru</h1>
+    <div class="form-group">
+      <label>Nama Mod *</label>
+      <input type="text" id="up-name" placeholder="Contoh: Lamborghini Urus 2024">
+    </div>
+    <div class="form-group">
+      <label>Kategori *</label>
+      <select id="up-cat"></select>
+    </div>
+    <div class="form-group">
+      <label>URL Redirect Download *</label>
+      <input type="url" id="up-url" placeholder="https://drive.google.com/...">
+    </div>
+    <div class="form-group">
+      <label>Password Download *</label>
+      <input type="password" id="up-pw" placeholder="Password yang harus dimasukkan sebelum download">
+    </div>
+    <div class="form-group">
+      <label>Deskripsi</label>
+      <textarea id="up-desc" rows="3" placeholder="Deskripsi singkat mod..."></textarea>
+    </div>
+    <div class="form-group">
+      <label>Thumbnail Utama *</label>
+      <div class="file-drop" onclick="document.getElementById('up-thumb-file').click()">
+        <i class="ti ti-photo" style="font-size:2rem;color:var(--fg3)"></i>
+        <p>Klik untuk pilih gambar thumbnail (JPG/PNG)</p>
+        <img id="up-thumb-preview" class="preview-thumb" style="display:none">
+      </div>
+      <input type="file" id="up-thumb-file" accept="image/*" style="display:none" onchange="previewThumb(this)">
+      <input type="text" id="up-thumb-url" placeholder="Atau masukkan URL gambar langsung" style="margin-top:8px">
+    </div>
+    <div class="form-group">
+      <label>Gambar Pendukung (opsional, maks 5)</label>
+      <div class="file-drop" onclick="document.getElementById('up-gallery-file').click()">
+        <i class="ti ti-photos" style="font-size:2rem;color:var(--fg3)"></i>
+        <p>Klik untuk pilih beberapa gambar</p>
+        <div class="preview-grid" id="up-gallery-preview"></div>
+      </div>
+      <input type="file" id="up-gallery-file" accept="image/*" multiple style="display:none" onchange="previewGallery(this)">
+    </div>
+    <div class="error-msg" id="up-error" style="display:none;margin-bottom:12px"></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-primary" onclick="submitMod()">Upload Mod</button>
+      <button class="btn btn-ghost" onclick="goPage('admin')">Batal</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== FILE LIST PAGE ========== -->
+<div id="page-filelist" class="page">
+  <div class="filelist-wrap">
+    <h1>Daftar URL Mod</h1>
+    <p>Salin URL unik untuk setiap mod. URL ini bisa dibagikan langsung.</p>
+    <div id="filelist-content"></div>
+  </div>
+</div>
+
+<!-- ========== ADMIN PAGE ========== -->
+<div id="page-admin" class="page">
+  <div class="admin-wrap">
+    <div class="admin-sidebar">
+      <h3>Menu Admin</h3>
+      <div class="sidebar-item active" onclick="adminTab('dashboard',this)">
+        <i class="ti ti-dashboard"></i><span>Dashboard</span>
+      </div>
+      <div class="sidebar-item" onclick="adminTab('mods',this)">
+        <i class="ti ti-package"></i><span>Kelola Mod</span>
+      </div>
+      <div class="sidebar-item" onclick="adminTab('categories',this)">
+        <i class="ti ti-tag"></i><span>Kategori</span>
+      </div>
+      <div class="sidebar-item" onclick="adminTab('admins',this)">
+        <i class="ti ti-shield"></i><span>Admin</span>
+      </div>
+      <div class="sidebar-item" onclick="goPage('upload')">
+        <i class="ti ti-upload"></i><span>Upload Mod</span>
+      </div>
+    </div>
+    <div class="admin-content">
+      <!-- Dashboard -->
+      <div id="atab-dashboard">
+        <h2>Dashboard</h2>
+        <div class="stats-grid" id="admin-stats"></div>
+      </div>
+      <!-- Mods -->
+      <div id="atab-mods" style="display:none">
+        <h2>Kelola Mod</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Thumbnail</th><th>Nama</th><th>Kategori</th><th>Tanggal</th><th>Aksi</th></tr></thead>
+          <tbody id="admin-mod-table"></tbody>
+        </table></div>
+      </div>
+      <!-- Categories -->
+      <div id="atab-categories" style="display:none">
+        <h2>Kelola Kategori</h2>
+        <div style="display:flex;gap:10px;margin-bottom:20px">
+          <input type="text" id="new-cat-name" placeholder="Nama kategori baru" style="max-width:300px">
+          <button class="btn btn-primary" onclick="addCategory()">Tambah</button>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Nama Kategori</th><th>Jumlah Mod</th><th>Aksi</th></tr></thead>
+          <tbody id="admin-cat-table"></tbody>
+        </table></div>
+      </div>
+      <!-- Admins -->
+      <div id="atab-admins" style="display:none">
+        <h2>Daftar Admin</h2>
+        <div style="display:flex;gap:10px;margin-bottom:20px">
+          <input type="email" id="new-admin-email" placeholder="Email admin baru" style="max-width:300px">
+          <button class="btn btn-primary" onclick="addAdmin()">Tambah</button>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Email</th><th>Aksi</th></tr></thead>
+          <tbody id="admin-admin-table"></tbody>
+        </table></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MOD DETAIL MODAL -->
+<div class="modal-overlay" id="mod-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modal-title">Nama Mod</h2>
+      <button class="modal-close" onclick="closeModal('mod-modal')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-img" id="modal-main-img">
+      <img id="modal-main-img-el" src="" alt="">
+    </div>
+    <div class="modal-gallery" id="modal-gallery"></div>
+    <div class="modal-body">
+      <div class="mod-stats" id="modal-stats"></div>
+      <p class="mod-desc" id="modal-desc"></p>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="modal-dl-btn" onclick="askPassword()">
+          <i class="ti ti-download"></i> Download
+        </button>
+        <span class="badge badge-yellow" id="modal-cat-badge"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PASSWORD MODAL -->
+<div class="modal-overlay" id="pw-modal">
+  <div class="modal pw-modal">
+    <div class="modal-header">
+      <h2>Masukkan Password</h2>
+      <button class="modal-close" onclick="closeModal('pw-modal')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--fg2);font-size:14px;margin-bottom:16px">Masukkan password untuk mengakses link download.</p>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="pw-input" placeholder="Masukkan password..." onkeydown="if(event.key==='Enter')checkPassword()">
+      </div>
+      <div class="error-msg" id="pw-error" style="display:none;margin-bottom:12px">Password salah!</div>
+      <button class="btn btn-primary" style="width:100%" onclick="checkPassword()">Konfirmasi</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ========== STATE ==========
+let currentUser = null;
+let currentMod = null;
+let selectedCat = 'all';
+let galleryFiles = [];
+let thumbFile = null;
+
+// Default data
+const DEFAULT_ADMINS = ['admin@gtamodhub.com'];
+const SITE_PASSWORD = 'admin123'; // login password untuk semua admin
+
+// ========== STORAGE HELPERS ==========
+async function sGet(key) {
+  try { const r = await window.storage.get(key); return r ? JSON.parse(r.value) : null; } catch(e) { return null; }
+}
+async function sSet(key, val) {
+  try { await window.storage.set(key, JSON.stringify(val)); } catch(e) {}
+}
+
+async function getData(key, def) {
+  const v = await sGet(key);
+  return v !== null ? v : def;
+}
+
+async function getMods() { return await getData('mods', []); }
+async function saveMods(m) { await sSet('mods', m); }
+async function getCats() { 
+  const c = await getData('categories', null);
+  if (c) return c;
+  const defaults = ['Vehicles','Maps','Scripts','Characters','Weapons'];
+  await saveCats(defaults);
+  return defaults;
+}
+async function saveCats(c) { await sSet('categories', c); }
+async function getAdmins() {
+  const a = await getData('admins', null);
+  if (a) return a;
+  await sSet('admins', JSON.stringify(DEFAULT_ADMINS));
+  return DEFAULT_ADMINS;
+}
+async function saveAdmins(a) { await sSet('admins', a); }
+
+// ========== AUTH ==========
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pw = document.getElementById('login-password').value;
+  const admins = await getAdmins();
+  const err = document.getElementById('login-error');
+  
+  if (!email || !pw) { showErr(err,'Isi semua field'); return; }
+  if (!admins.map(e=>e.toLowerCase()).includes(email.toLowerCase())) {
+    showErr(err,'Email tidak terdaftar sebagai admin'); return;
+  }
+  if (pw !== SITE_PASSWORD) { showErr(err,'Password salah'); return; }
+  
+  currentUser = { email };
+  err.style.display = 'none';
+  updateNav();
+  goPage('admin');
+  showToast('Login berhasil!','success');
+}
+
+function doLogout() {
+  currentUser = null;
+  updateNav();
+  goPage('home');
+  showToast('Logout berhasil','success');
+}
+
+function updateNav() {
+  const isAdmin = !!currentUser;
+  document.getElementById('nav-login').style.display = isAdmin ? 'none' : '';
+  document.getElementById('nav-logout').style.display = isAdmin ? '' : 'none';
+  document.getElementById('nav-admin').style.display = isAdmin ? '' : 'none';
+  document.getElementById('nav-filelist').style.display = isAdmin ? '' : 'none';
+}
+
+// ========== NAVIGATION ==========
+function goPage(page) {
+  if ((page==='admin'||page==='upload') && !currentUser) { goPage('login'); return; }
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  window.scrollTo(0,0);
+  if (page==='home') renderMods();
+  if (page==='admin') renderAdmin();
+  if (page==='upload') renderUploadCats();
+  if (page==='filelist') renderFileList();
+}
+
+// ========== HOME ==========
+async function renderCatTabs() {
+  const cats = await getCats();
+  const mods = await getMods();
+  const tabs = document.getElementById('cat-tabs');
+  tabs.innerHTML = '<button class="cat-tab '+(selectedCat==='all'?'active':'')+'" data-cat="all" onclick="selectCat(this)">Semua ('+mods.length+')</button>';
+  cats.forEach(c => {
+    const count = mods.filter(m=>m.category===c).length;
+    tabs.innerHTML += '<button class="cat-tab '+(selectedCat===c?'active':'')+'" data-cat="'+c+'" onclick="selectCat(this)">'+c+' ('+count+')</button>';
+  });
+}
+
+function selectCat(el) {
+  selectedCat = el.dataset.cat;
+  document.querySelectorAll('.cat-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderMods();
+}
+
+async function renderMods() {
+  await renderCatTabs();
+  const mods = await getMods();
+  const query = (document.getElementById('search-input')?.value||'').toLowerCase();
+  const section = document.getElementById('mod-section');
+  
+  let filtered = mods.filter(m => {
+    const matchCat = selectedCat==='all' || m.category===selectedCat;
+    const matchQ = !query || m.name.toLowerCase().includes(query) || m.category.toLowerCase().includes(query);
+    return matchCat && matchQ;
+  });
+
+  if (!filtered.length) {
+    section.innerHTML = '<div class="empty"><i class="ti ti-mood-empty"></i><p>Belum ada mod di sini.</p></div>';
+    return;
+  }
+
+  // Group by category if 'all'
+  if (selectedCat === 'all') {
+    const cats = await getCats();
+    let html = '';
+    const grouped = {};
+    filtered.forEach(m => { if(!grouped[m.category]) grouped[m.category]=[]; grouped[m.category].push(m); });
+    Object.keys(grouped).forEach(cat => {
+      html += '<div class="section-title">'+cat+'</div><div class="mod-grid">';
+      grouped[cat].forEach(m => { html += modCardHTML(m); });
+      html += '</div><div style="margin-bottom:32px"></div>';
+    });
+    section.innerHTML = html;
+  } else {
+    section.innerHTML = '<div class="mod-grid">'+filtered.map(modCardHTML).join('')+'</div>';
+  }
+}
+
+function modCardHTML(m) {
+  const thumb = m.thumbnail || '';
+  const thumbEl = thumb ? '<img src="'+escH(thumb)+'" alt="'+escH(m.name)+'" onerror="this.style.display=\'none\'">': '<i class="ti ti-package" style="font-size:2.5rem;color:var(--fg3)"></i>';
+  return '<div class="mod-card" onclick="openModDetail(\''+m.id+'\')"><div class="mod-thumb">'+thumbEl+'</div><div class="mod-info"><div class="mod-name">'+escH(m.name)+'</div><div class="mod-meta"><span class="mod-date">'+formatDate(m.createdAt)+'</span><span class="mod-cat-badge">'+escH(m.category)+'</span></div></div></div>';
+}
+
+async function openModDetail(id) {
+  const mods = await getMods();
+  const mod = mods.find(m=>m.id===id);
+  if (!mod) return;
+  currentMod = mod;
+
+  document.getElementById('modal-title').textContent = mod.name;
+  
+  const mainImg = document.getElementById('modal-main-img');
+  const mainImgEl = document.getElementById('modal-main-img-el');
+  if (mod.thumbnail) { mainImgEl.src = mod.thumbnail; mainImg.style.justifyContent=''; mainImg.style.fontSize=''; }
+  else { mainImg.innerHTML = '<i class="ti ti-package" style="font-size:3rem;color:var(--fg3)"></i>'; }
+  
+  // Gallery
+  const gallery = document.getElementById('modal-gallery');
+  gallery.innerHTML = '';
+  const allImgs = [mod.thumbnail, ...(mod.gallery||[])].filter(Boolean);
+  allImgs.forEach((img,i) => {
+    const el = document.createElement('img');
+    el.src = img; el.className = 'gallery-thumb'+(i===0?' active':'');
+    el.onclick = () => { mainImgEl.src=img; document.querySelectorAll('.gallery-thumb').forEach(t=>t.classList.remove('active')); el.classList.add('active'); };
+    gallery.appendChild(el);
+  });
+  if (allImgs.length < 2) gallery.style.display = 'none';
+  else gallery.style.display = 'flex';
+
+  document.getElementById('modal-stats').innerHTML =
+    '<div class="stat-item"><i class="ti ti-tag"></i>'+escH(mod.category)+'</div>'+
+    '<div class="stat-item"><i class="ti ti-calendar"></i>'+formatDate(mod.createdAt)+'</div>'+
+    '<div class="stat-item"><i class="ti ti-link"></i><code style="font-size:12px;color:var(--fg3)">ID: '+mod.id+'</code></div>';
+  
+  document.getElementById('modal-desc').textContent = mod.description || 'Tidak ada deskripsi.';
+  document.getElementById('modal-cat-badge').textContent = mod.category;
+
+  openModal('mod-modal');
+}
+
+// ========== PASSWORD CHECK ==========
+function askPassword() {
+  document.getElementById('pw-input').value = '';
+  document.getElementById('pw-error').style.display = 'none';
+  openModal('pw-modal');
+}
+
+function checkPassword() {
+  const input = document.getElementById('pw-input').value;
+  if (input === currentMod.password) {
+    closeModal('pw-modal');
+    closeModal('mod-modal');
+    window.open(currentMod.downloadUrl, '_blank');
+  } else {
+    document.getElementById('pw-error').style.display = 'block';
+    document.getElementById('pw-input').value = '';
+  }
+}
+
+// ========== UPLOAD ==========
+async function renderUploadCats() {
+  const cats = await getCats();
+  const sel = document.getElementById('up-cat');
+  sel.innerHTML = cats.map(c=>'<option value="'+escH(c)+'">'+escH(c)+'</option>').join('');
+}
+
+function previewThumb(input) {
+  if (!input.files[0]) return;
+  thumbFile = input.files[0];
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById('up-thumb-preview');
+    img.src = e.target.result; img.style.display = 'block';
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+function previewGallery(input) {
+  galleryFiles = Array.from(input.files).slice(0,5);
+  const preview = document.getElementById('up-gallery-preview');
+  preview.innerHTML = '';
+  galleryFiles.forEach(f => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = document.createElement('img');
+      img.src = e.target.result;
+      preview.appendChild(img);
+    };
+    reader.readAsDataURL(f);
+  });
+}
+
+async function fileToDataURL(file) {
+  return new Promise(res => {
+    const reader = new FileReader();
+    reader.onload = e => res(e.target.result);
+    reader.readAsDataURL(file);
+  });
+}
+
+async function submitMod() {
+  const name = document.getElementById('up-name').value.trim();
+  const cat = document.getElementById('up-cat').value;
+  const url = document.getElementById('up-url').value.trim();
+  const pw = document.getElementById('up-pw').value;
+  const desc = document.getElementById('up-desc').value.trim();
+  const thumbUrl = document.getElementById('up-thumb-url').value.trim();
+  const err = document.getElementById('up-error');
+
+  if (!name||!cat||!url||!pw) { showErr(err,'Nama, kategori, URL, dan password wajib diisi'); return; }
+
+  let thumbnail = thumbUrl;
+  if (!thumbnail && thumbFile) { thumbnail = await fileToDataURL(thumbFile); }
+
+  let gallery = [];
+  if (galleryFiles.length) {
+    for (const f of galleryFiles) { gallery.push(await fileToDataURL(f)); }
+  }
+
+  const id = 'mod-' + Date.now() + '-' + Math.random().toString(36).slice(2,7);
+  const mod = { id, name, category: cat, downloadUrl: url, password: pw, description: desc, thumbnail, gallery, createdAt: Date.now() };
+
+  const mods = await getMods();
+  mods.unshift(mod);
+  await saveMods(mods);
+
+  // Reset form
+  ['up-name','up-url','up-pw','up-desc','up-thumb-url'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('up-thumb-preview').style.display='none';
+  document.getElementById('up-gallery-preview').innerHTML='';
+  thumbFile = null; galleryFiles = [];
+  err.style.display = 'none';
+
+  showToast('Mod berhasil diupload!','success');
+  goPage('admin');
+}
+
+// ========== FILE LIST ==========
+async function renderFileList() {
+  const mods = await getMods();
+  const cont = document.getElementById('filelist-content');
+  if (!mods.length) { cont.innerHTML = '<div class="empty"><i class="ti ti-file-off"></i><p>Belum ada mod yang diupload.</p></div>'; return; }
+  
+  const baseUrl = window.location.href.split('?')[0];
+  cont.innerHTML = mods.map(m =>
+    '<div style="margin-bottom:8px"><div style="font-size:12px;color:var(--fg3);margin-bottom:4px">'+escH(m.name)+'</div>'+
+    '<div class="url-row">'+
+    '<span class="url-text">'+baseUrl+'?mod='+m.id+'</span>'+
+    '<button class="btn btn-ghost btn-sm copy-btn" onclick="copyUrl(this,\''+baseUrl+'?mod='+m.id+'\')"><i class="ti ti-copy"></i> Salin</button>'+
+    '</div></div>'
+  ).join('');
+}
+
+function copyUrl(btn, url) {
+  navigator.clipboard.writeText(url).then(() => {
+    btn.classList.add('copied');
+    btn.innerHTML = '<i class="ti ti-check"></i> Tersalin';
+    setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = '<i class="ti ti-copy"></i> Salin'; }, 2000);
+  });
+}
+
+// ========== ADMIN ==========
+function adminTab(tab, el) {
+  document.querySelectorAll('[id^="atab-"]').forEach(t=>t.style.display='none');
+  document.getElementById('atab-'+tab).style.display='block';
+  document.querySelectorAll('.sidebar-item').forEach(i=>i.classList.remove('active'));
+  if(el) el.classList.add('active');
+  if(tab==='mods') renderAdminMods();
+  if(tab==='categories') renderAdminCats();
+  if(tab==='admins') renderAdminAdmins();
+}
+
+async function renderAdmin() {
+  const mods = await getMods();
+  const cats = await getCats();
+  const admins = await getAdmins();
+  document.getElementById('admin-stats').innerHTML =
+    '<div class="stat-card"><div class="num">'+mods.length+'</div><div class="lbl">Total Mod</div></div>'+
+    '<div class="stat-card"><div class="num">'+cats.length+'</div><div class="lbl">Kategori</div></div>'+
+    '<div class="stat-card"><div class="num">'+admins.length+'</div><div class="lbl">Admin</div></div>';
+}
+
+async function renderAdminMods() {
+  const mods = await getMods();
+  const tbody = document.getElementById('admin-mod-table');
+  if (!mods.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--fg3)">Belum ada mod</td></tr>'; return; }
+  tbody.innerHTML = mods.map(m =>
+    '<tr>'+
+    '<td><div style="width:64px;height:40px;background:var(--bg3);border-radius:4px;overflow:hidden">'+
+    (m.thumbnail?'<img src="'+escH(m.thumbnail)+'" style="width:100%;height:100%;object-fit:cover">':'<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--fg3)"><i class="ti ti-package"></i></div>')+
+    '</div></td>'+
+    '<td><div style="font-weight:500">'+escH(m.name)+'</div><div style="font-size:12px;color:var(--fg3)">'+m.id+'</div></td>'+
+    '<td><span class="badge badge-yellow">'+escH(m.category)+'</span></td>'+
+    '<td style="color:var(--fg3);font-size:13px">'+formatDate(m.createdAt)+'</td>'+
+    '<td><button class="btn btn-danger btn-sm" onclick="deleteMod(\''+m.id+'\')"><i class="ti ti-trash"></i></button></td>'+
+    '</tr>'
+  ).join('');
+}
+
+async function deleteMod(id) {
+  if (!confirm('Hapus mod ini?')) return;
+  let mods = await getMods();
+  mods = mods.filter(m=>m.id!==id);
+  await saveMods(mods);
+  renderAdminMods();
+  renderAdmin();
+  showToast('Mod dihapus','success');
+}
+
+async function renderAdminCats() {
+  const cats = await getCats();
+  const mods = await getMods();
+  const tbody = document.getElementById('admin-cat-table');
+  tbody.innerHTML = cats.map(c =>
+    '<tr><td><span class="badge badge-yellow">'+escH(c)+'</span></td>'+
+    '<td>'+mods.filter(m=>m.category===c).length+' mod</td>'+
+    '<td><button class="btn btn-danger btn-sm" onclick="deleteCategory(\''+escH(c)+'\')"><i class="ti ti-trash"></i></button></td></tr>'
+  ).join('') || '<tr><td colspan="3" style="text-align:center;color:var(--fg3)">Belum ada kategori</td></tr>';
+}
+
+async function addCategory() {
+  const name = document.getElementById('new-cat-name').value.trim();
+  if (!name) return;
+  const cats = await getCats();
+  if (cats.includes(name)) { showToast('Kategori sudah ada','error'); return; }
+  cats.push(name);
+  await saveCats(cats);
+  document.getElementById('new-cat-name').value = '';
+  renderAdminCats();
+  showToast('Kategori ditambahkan','success');
+}
+
+async function deleteCategory(name) {
+  if (!confirm('Hapus kategori "'+name+'"? Mod dengan kategori ini tidak terhapus.')) return;
+  let cats = await getCats();
+  cats = cats.filter(c=>c!==name);
+  await saveCats(cats);
+  renderAdminCats();
+  showToast('Kategori dihapus','success');
+}
+
+async function renderAdminAdmins() {
+  const admins = await getAdmins();
+  const tbody = document.getElementById('admin-admin-table');
+  tbody.innerHTML = admins.map(e =>
+    '<tr><td>'+escH(e)+'</td>'+
+    '<td>'+(admins.length>1?'<button class="btn btn-danger btn-sm" onclick="removeAdmin(\''+escH(e)+'\')"><i class="ti ti-trash"></i></button>':'<span style="color:var(--fg3);font-size:12px">Admin utama</span>')+'</td></tr>'
+  ).join('');
+}
+
+async function addAdmin() {
+  const email = document.getElementById('new-admin-email').value.trim().toLowerCase();
+  if (!email || !email.includes('@')) { showToast('Email tidak valid','error'); return; }
+  const admins = await getAdmins();
+  if (admins.map(e=>e.toLowerCase()).includes(email)) { showToast('Email sudah terdaftar','error'); return; }
+  admins.push(email);
+  await saveAdmins(admins);
+  document.getElementById('new-admin-email').value = '';
+  renderAdminAdmins();
+  showToast('Admin ditambahkan','success');
+}
+
+async function removeAdmin(email) {
+  const admins = await getAdmins();
+  if (admins.length <= 1) { showToast('Harus ada minimal 1 admin','error'); return; }
+  if (!confirm('Hapus admin '+email+'?')) return;
+  const updated = admins.filter(e=>e.toLowerCase()!==email.toLowerCase());
+  await saveAdmins(updated);
+  renderAdminAdmins();
+  showToast('Admin dihapus','success');
+}
+
+// ========== MODALS ==========
+function openModal(id) { document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); if(!document.querySelector('.modal-overlay.open')) document.body.style.overflow=''; }
+
+// ========== UTILS ==========
+function escH(s) { if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function formatDate(ts) { if(!ts) return ''; return new Date(ts).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}); }
+function showErr(el, msg) { el.textContent=msg; el.style.display='block'; }
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show '+type;
+  setTimeout(() => t.className='toast', 3000);
+}
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if(e.target===o) closeModal(o.id); });
+});
+
+// ========== INIT ==========
+(async function init() {
+  updateNav();
+  renderMods();
+  
+  // Check URL params for direct mod link
+  const params = new URLSearchParams(window.location.search);
+  const modId = params.get('mod');
+  if (modId) {
+    const mods = await getMods();
+    const mod = mods.find(m=>m.id===modId);
+    if (mod) setTimeout(()=>openModDetail(modId), 500);
+  }
+})();
+</script>
+</body>
+</html>
